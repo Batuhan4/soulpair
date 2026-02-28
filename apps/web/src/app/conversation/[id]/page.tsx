@@ -8,6 +8,8 @@ import type { WSServerMessage, ConversationMessage, ConversationResult } from '@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+import { agentLabel } from '@/lib/agents';
+
 interface ConversationData {
   id: string;
   agent1_address: string;
@@ -143,12 +145,12 @@ export default function ConversationPage() {
             <Link href="/" className="text-[var(--sp-text-muted)] hover:text-[var(--sp-text)]">←</Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm" style={{ color: 'var(--sp-primary)' }}>
-                  @{conversation.agent1_address.slice(0, 8)}
+                <span className="text-sm font-bold" style={{ color: 'var(--sp-primary)' }}>
+                  {agentLabel(conversation.agent1_address)}
                 </span>
                 <span className="text-[var(--sp-text-muted)]">↔</span>
-                <span className="font-mono text-sm" style={{ color: 'var(--sp-primary)' }}>
-                  @{conversation.agent2_address.slice(0, 8)}
+                <span className="text-sm font-bold" style={{ color: 'var(--sp-primary)' }}>
+                  {agentLabel(conversation.agent2_address)}
                 </span>
               </div>
             </div>
@@ -188,8 +190,8 @@ export default function ConversationPage() {
                   : 'border border-[var(--sp-primary)]/30'
                 }`} style={!isAgent1 ? { background: 'rgba(255,90,54,0.1)' } : {}}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono" style={{ color: 'var(--sp-primary)' }}>
-                      @{msg.from_address.slice(0, 8)}
+                    <span className="text-xs font-bold" style={{ color: 'var(--sp-primary)' }}>
+                      {agentLabel(msg.from_address)}
                     </span>
                     <span className="text-xs text-[var(--sp-text-muted)]">
                       {new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}

@@ -24,7 +24,7 @@ router.get('/', (_req: Request, res: Response) => {
 
   const activeConversations = db.prepare(`
     SELECT COUNT(*) as count FROM conversations
-    WHERE status IN ('waiting', 'active')
+    WHERE id IN (SELECT DISTINCT conversation_id FROM conversation_messages)
   `).get() as { count: number };
 
   const totalConversations = db.prepare(`
@@ -71,7 +71,7 @@ router.get('/conversations', (_req: Request, res: Response) => {
            (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) as message_count,
            (SELECT content FROM conversation_messages WHERE conversation_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message
     FROM conversations c
-    WHERE c.status IN ('waiting', 'active')
+    WHERE c.id IN (SELECT DISTINCT conversation_id FROM conversation_messages)
     ORDER BY
       (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) DESC,
       c.started_at DESC
@@ -88,8 +88,7 @@ router.get('/live-feed', (_req: Request, res: Response) => {
            c.agent1_address, c.agent2_address
     FROM conversation_messages m
     JOIN conversations c ON c.id = m.conversation_id
-    WHERE c.status IN ('waiting', 'active')
-    ORDER BY m.timestamp DESC
+    -- ORDER BY m.timestamp DESC
     LIMIT 50
   `).all();
 
