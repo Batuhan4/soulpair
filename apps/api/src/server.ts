@@ -10,6 +10,7 @@ import statsRoutes from './routes/stats';
 import conversationRoutes from './routes/conversation';
 import { setupWebSocket, getStats } from './ws/agent-dm';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
+import { autoSeed } from './db/auto-seed';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
@@ -107,6 +108,7 @@ server.listen(PORT, '0.0.0.0', () => {
   ║   Status: Ready                           ║
   ╚═══════════════════════════════════════════╝
   `);
+  autoSeed();
 });
 
 export default server;
