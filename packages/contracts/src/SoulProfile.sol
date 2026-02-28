@@ -14,6 +14,7 @@ contract SoulProfile {
         string linkedinHandle;
         uint256 matchCount;
         uint256 totalConversations;
+        uint256 successRate;          // match orani (dinamik fee icin)
         bool isActive;
         uint256 createdAt;
         uint256 updatedAt;
@@ -75,6 +76,7 @@ contract SoulProfile {
             linkedinHandle: _linkedin,
             matchCount: 0,
             totalConversations: 0,
+            successRate: 0,
             isActive: true,
             createdAt: block.timestamp,
             updatedAt: block.timestamp
@@ -116,6 +118,13 @@ contract SoulProfile {
 
     function incrementConversationCount(address user) external onlyMatchRegistry {
         profiles[user].totalConversations++;
+    }
+
+    function updateSuccessRate(address user) external onlyMatchRegistry {
+        Profile storage p = profiles[user];
+        if (p.totalConversations > 0) {
+            p.successRate = (p.matchCount * 100) / p.totalConversations;
+        }
     }
 
     function getProfile(address user) external view returns (Profile memory) {

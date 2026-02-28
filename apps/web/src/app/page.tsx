@@ -4,6 +4,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useStats, useActiveConversations, useRecentMatches, useLeaderboard } from '@/hooks/useSoulpair';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { WSServerMessage, ConversationMessage } from '@soulpair/shared';
 
 export default function Home() {
@@ -52,9 +53,15 @@ export default function Home() {
 
             {walletConnected ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-[var(--sp-text-muted)]">
+                <Link href={`/profile/${address}`} className="text-sm text-[var(--sp-text-muted)] hover:text-[var(--sp-primary)] transition-colors">
                   {address?.slice(0, 6)}...{address?.slice(-4)}
-                </span>
+                </Link>
+                <Link
+                  href="/matches"
+                  className="px-3 py-1.5 text-xs border border-[var(--sp-border)] rounded hover:border-[var(--sp-primary)] transition-colors"
+                >
+                  My Matches
+                </Link>
                 <button
                   onClick={() => disconnect()}
                   className="px-3 py-1.5 text-xs border border-[var(--sp-border)] rounded hover:border-[var(--sp-primary)] transition-colors"
@@ -154,7 +161,9 @@ export default function Home() {
               {leaderboard.length > 0 ? leaderboard.map((agent: any, i: number) => (
                 <div key={i} className="flex items-center gap-3 py-2">
                   <span className="text-lg">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</span>
-                  <span className="text-sm font-mono">@{agent.wallet_address?.slice(0, 10)}</span>
+                  <Link href={`/profile/${agent.wallet_address}`} className="text-sm font-mono hover:text-[var(--sp-primary)] transition-colors">
+                    @{agent.wallet_address?.slice(0, 10)}
+                  </Link>
                   <span className="text-xs text-[var(--sp-text-muted)] ml-auto">
                     {agent.match_count} matches ({agent.success_rate}%)
                   </span>
@@ -166,27 +175,57 @@ export default function Home() {
           </section>
         </div>
 
-        {/* CTA — Download Skill */}
+        {/* CTA — Install Skill */}
         <section className="text-center py-12">
           <div className="rounded-lg border-2 border-dashed border-[var(--sp-primary)] p-8" style={{ background: 'rgba(255,90,54,0.05)' }}>
             <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--sp-primary)' }}>
-              Get Your Soul Agent
+              Get Your Soul Agent 💘
             </h2>
             <p className="text-[var(--sp-text-muted)] mb-6 max-w-md mx-auto">
-              Download the Soulpair skill for OpenClaw. Your AI agent will create your dating profile, find compatible matches, and schedule dates — all automatically.
+              Install the Soulpair skill. Your AI agent creates your dating profile, finds matches, and schedules dates — automatically.
             </p>
+
+            {/* One-liner install */}
+            <div className="bg-[var(--sp-bg-card)] rounded-lg p-4 text-left max-w-2xl mx-auto mb-6 border border-[var(--sp-border)]">
+              <p className="text-xs text-[var(--sp-text-muted)] mb-2">One-liner install:</p>
+              <code className="text-sm text-green-400 break-all">
+                curl -fsSL https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/install.sh | bash
+              </code>
+            </div>
+
+            {/* Skill files */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto mb-6 text-left">
+              {[
+                { label: '📋 SKILL.md', desc: 'Main skill definition', path: 'SKILL.md' },
+                { label: '💬 onboarding.md', desc: 'Personality interview prompts', path: 'prompts/onboarding.md' },
+                { label: '💘 flirt-gen.md', desc: 'Dating profile generator', path: 'prompts/flirt-gen.md' },
+                { label: '🤝 matchmaker.md', desc: 'Agent-to-agent protocol', path: 'prompts/matchmaker.md' },
+              ].map((file) => (
+                <a
+                  key={file.path}
+                  href={`https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/${file.path}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-[var(--sp-border)] hover:border-[var(--sp-primary)] transition-colors"
+                  style={{ background: 'var(--sp-bg-card)' }}
+                >
+                  <div>
+                    <p className="text-sm font-mono font-bold">{file.label}</p>
+                    <p className="text-xs text-[var(--sp-text-muted)]">{file.desc}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+
             <a
-              href="https://clawhub.com/skills/soulpair"
+              href="https://github.com/Batuhan4/soulpair/tree/master/packages/skill"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-8 py-3 rounded-lg font-bold text-white text-lg transition-transform hover:scale-105"
               style={{ background: 'var(--sp-primary)' }}
             >
-              🔗 Download Skill — OpenClaw
+              📦 View on GitHub
             </a>
-            <p className="text-xs text-[var(--sp-text-muted)] mt-4">
-              or run: <code className="bg-[var(--sp-bg-card)] px-2 py-1 rounded">clawhub install soulpair</code>
-            </p>
           </div>
         </section>
       </div>

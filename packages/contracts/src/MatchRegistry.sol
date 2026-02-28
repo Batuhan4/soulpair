@@ -19,14 +19,17 @@ contract MatchRegistry {
         bool user1Approved;
         bool user2Approved;
         uint256 feePaid;
+        uint256 dateTimestamp;
+        string dateLocation;
     }
 
     SoulProfile public soulProfile;
     address public treasury;
+    address public matchPool;
+    address public ecosystemFund;
     address public owner;
 
     uint256 public baseFee = 0.01 ether;       // 0.01 MON
-    uint256 public treasuryFeePercent = 10;     // 10% to treasury
     uint256 public matchCount;
 
     mapping(uint256 => Match) public matches;
@@ -36,7 +39,8 @@ contract MatchRegistry {
     event MatchApproved(uint256 indexed matchId, address indexed approver);
     event MatchConfirmed(uint256 indexed matchId, address user1, address user2);
     event MatchRejected(uint256 indexed matchId, address indexed rejector);
-    event FeeCollected(uint256 indexed matchId, uint256 amount, uint256 treasuryAmount);
+    event FeeCollected(uint256 indexed matchId, uint256 amount, uint256 treasuryAmount, uint256 matchPoolAmount, uint256 ecosystemAmount);
+    event DateScheduled(uint256 indexed matchId, uint256 dateTimestamp, string dateLocation);
     event Refunded(uint256 indexed matchId, address indexed user, uint256 amount);
 
     modifier onlyOwner() {
@@ -44,9 +48,11 @@ contract MatchRegistry {
         _;
     }
 
-    constructor(address _soulProfile, address _treasury) {
+    constructor(address _soulProfile, address _treasury, address _matchPool, address _ecosystemFund) {
         soulProfile = SoulProfile(_soulProfile);
         treasury = _treasury;
+        matchPool = _matchPool;
+        ecosystemFund = _ecosystemFund;
         owner = msg.sender;
     }
 
@@ -76,7 +82,9 @@ contract MatchRegistry {
             status: MatchStatus.Pending,
             user1Approved: false,
             user2Approved: false,
-            feePaid: msg.value
+            feePaid: msg.value,
+            dateTimestamp: 0,
+            dateLocation: ""
         });
 
         userMatches[_user1].push(matchId);
@@ -114,16 +122,29 @@ contract MatchRegistry {
 
             soulProfile.incrementMatchCount(m.user1);
             soulProfile.incrementMatchCount(m.user2);
+            soulProfile.updateSuccessRate(m.user1);
+            soulProfile.updateSuccessRate(m.user2);
 
-            // Distribute fee
-            uint256 treasuryAmount = (m.feePaid * treasuryFeePercent) / 100;
+            // Distribute fee — 70% treasury, 20% match pool, 10% ecosystem
+            uint256 treasuryAmount = (m.feePaid * 70) / 100;
+            uint256 matchPoolAmount = (m.feePaid * 20) / 100;
+            uint256 ecosystemAmount = m.feePaid - treasuryAmount - matchPoolAmount; // remainder to avoid rounding
+
             if (treasuryAmount > 0) {
-                (bool sent, ) = treasury.call{value: treasuryAmount}("");
-                require(sent, "Treasury transfer failed");
+                (bool sent1, ) = treasury.call{value: treasuryAmount}("");
+                require(sent1, "Treasury transfer failed");
+            }
+            if (matchPoolAmount > 0) {
+                (bool sent2, ) = matchPool.call{value: matchPoolAmount}("");
+                require(sent2, "Match pool transfer failed");
+            }
+            if (ecosystemAmount > 0) {
+                (bool sent3, ) = ecosystemFund.call{value: ecosystemAmount}("");
+                require(sent3, "Ecosystem transfer failed");
             }
 
             emit MatchConfirmed(_matchId, m.user1, m.user2);
-            emit FeeCollected(_matchId, m.feePaid, treasuryAmount);
+            emit FeeCollected(_matchId, m.feePaid, treasuryAmount, matchPoolAmount, ecosystemAmount);
         }
     }
 
@@ -175,17 +196,32 @@ contract MatchRegistry {
         return matches[matchId];
     }
 
+    /**
+     * @notice Set date details for an approved match
+     */
+    function setDateDetails(uint256 _matchId, uint256 _dateTimestamp, string calldata _dateLocation) external {
+        Match storage m = matches[_matchId];
+        require(m.status == MatchStatus.Approved, "Not approved");
+        require(msg.sender == m.user1 || msg.sender == m.user2, "Not participant");
+        m.dateTimestamp = _dateTimestamp;
+        m.dateLocation = _dateLocation;
+        emit DateScheduled(_matchId, _dateTimestamp, _dateLocation);
+    }
+
     // Admin functions
     function setBaseFee(uint256 _fee) external onlyOwner {
         baseFee = _fee;
     }
 
-    function setTreasuryFeePercent(uint256 _percent) external onlyOwner {
-        require(_percent <= 100, "Invalid percent");
-        treasuryFeePercent = _percent;
-    }
-
     function setTreasury(address _treasury) external onlyOwner {
         treasury = _treasury;
+    }
+
+    function setMatchPool(address _matchPool) external onlyOwner {
+        matchPool = _matchPool;
+    }
+
+    function setEcosystemFund(address _ecosystemFund) external onlyOwner {
+        ecosystemFund = _ecosystemFund;
     }
 }

@@ -13,8 +13,13 @@ contract DeployScript is Script {
         SoulProfile soulProfile = new SoulProfile();
         console.log("SoulProfile deployed to:", address(soulProfile));
 
-        // 2. Deploy MatchRegistry (treasury = deployer for now)
-        MatchRegistry matchRegistry = new MatchRegistry(address(soulProfile), msg.sender);
+        // 2. Deploy MatchRegistry (treasury/matchPool/ecosystemFund = deployer for now)
+        MatchRegistry matchRegistry = new MatchRegistry(
+            address(soulProfile),
+            msg.sender,  // treasury
+            msg.sender,  // matchPool
+            msg.sender   // ecosystemFund
+        );
         console.log("MatchRegistry deployed to:", address(matchRegistry));
 
         // 3. Set MatchRegistry on SoulProfile

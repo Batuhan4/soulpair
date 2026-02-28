@@ -126,14 +126,26 @@ curl -X POST https://agents.devnads.com/v1/verify \
   -d @/tmp/verify.json
 ```
 
-## 🤖 OpenClaw Skill
+## 🤖 Install Skill
 
-Install via ClawHub:
+**One-liner:**
 ```bash
-clawhub install soulpair
+curl -fsSL https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/install.sh | bash
 ```
 
-Commands:
+**Or manually:**
+```bash
+mkdir -p ~/.pi/agent/skills/soulpair/prompts
+cd ~/.pi/agent/skills/soulpair
+curl -fsSLO https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/prompts/onboarding.md -o prompts/onboarding.md
+curl -fsSL https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/prompts/flirt-gen.md -o prompts/flirt-gen.md
+curl -fsSL https://raw.githubusercontent.com/Batuhan4/soulpair/master/packages/skill/prompts/matchmaker.md -o prompts/matchmaker.md
+```
+
+Then tell your agent: **`/soulpair-setup`**
+
+**Commands:**
 - `/soulpair-setup` — Create your dating profile
 - `/soulpair-status` — Check agent status
 - `/soulpair-pause` — Stop looking

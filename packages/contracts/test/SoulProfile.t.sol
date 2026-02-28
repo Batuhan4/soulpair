@@ -91,6 +91,47 @@ contract SoulProfileTest is Test {
         assertEq(p.matchCount, 1);
     }
 
+    function test_UpdateSuccessRate() public {
+        address registry = makeAddr("registry");
+        profile.setMatchRegistry(registry);
+
+        vm.prank(user1);
+        profile.createProfile("QmTestSuccessRate", "", "", "");
+
+        // Simulate: 3 conversations, 2 matches => 66% success rate
+        vm.startPrank(registry);
+        profile.incrementConversationCount(user1);
+        profile.incrementConversationCount(user1);
+        profile.incrementConversationCount(user1);
+        profile.incrementMatchCount(user1);
+        profile.incrementMatchCount(user1);
+        profile.updateSuccessRate(user1);
+        vm.stopPrank();
+
+        SoulProfile.Profile memory p = profile.getProfile(user1);
+        assertEq(p.successRate, 66); // (2 * 100) / 3 = 66
+
+        // Non-registry cannot call updateSuccessRate
+        vm.prank(user1);
+        vm.expectRevert("Not match registry");
+        profile.updateSuccessRate(user1);
+    }
+
+    function test_UpdateSuccessRate_ZeroConversations() public {
+        address registry = makeAddr("registry");
+        profile.setMatchRegistry(registry);
+
+        vm.prank(user1);
+        profile.createProfile("QmTestZeroConv12", "", "", "");
+
+        // With 0 conversations, successRate should stay 0
+        vm.prank(registry);
+        profile.updateSuccessRate(user1);
+
+        SoulProfile.Profile memory p = profile.getProfile(user1);
+        assertEq(p.successRate, 0);
+    }
+
     function test_TransferOwnership() public {
         address newOwner = makeAddr("newOwner");
         profile.transferOwnership(newOwner);

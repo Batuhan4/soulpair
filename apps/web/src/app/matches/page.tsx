@@ -6,6 +6,12 @@ import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+interface MatchFeedback {
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+}
+
 interface Match {
   id: string;
   conversation_id: string;
@@ -19,6 +25,7 @@ interface Match {
   result_reasoning: string;
   result_commonalities: string;
   result_differences: string;
+  result_feedback: string | null;
 }
 
 export default function MatchesPage() {
@@ -295,6 +302,9 @@ function MatchCard({
 }) {
   const commonalities = match.result_commonalities ? JSON.parse(match.result_commonalities) : [];
   const differences = match.result_differences ? JSON.parse(match.result_differences) : [];
+  const feedback: MatchFeedback | null = match.result_feedback ? JSON.parse(match.result_feedback) : null;
+  const hasReport = match.result_outcome || match.result_reasoning || commonalities.length > 0 || differences.length > 0;
+  const isMatch = match.result_outcome === 'match';
 
   return (
     <div className="rounded-lg border border-[var(--sp-border)] p-5" style={{ background: 'var(--sp-bg-card)' }}>
@@ -305,7 +315,7 @@ function MatchCard({
               @{opponent.slice(0, 12)}...
             </span>
             {waiting && <span className="text-xs px-2 py-0.5 rounded bg-yellow-400/20 text-yellow-400">Waiting</span>}
-            {approved && <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">Matched ♥</span>}
+            {approved && <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">Matched &#9829;</span>}
             {rejected && <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400">Rejected</span>}
           </div>
           <p className="text-xs text-[var(--sp-text-muted)]">
@@ -314,37 +324,116 @@ function MatchCard({
         </div>
       </div>
 
-      {/* AI Reasoning */}
-      {match.result_reasoning && (
-        <div className="mb-3 p-3 rounded bg-black/30 border border-[var(--sp-border)]">
-          <p className="text-xs text-[var(--sp-text-muted)] mb-1">🤖 AI says:</p>
-          <p className="text-sm">{match.result_reasoning}</p>
+      {/* Match Report */}
+      {hasReport && (
+        <div className="mb-4 rounded-lg border border-[var(--sp-border)] overflow-hidden">
+          {/* Report Header */}
+          <div className="px-4 py-2.5 border-b border-[var(--sp-border)] bg-black/20">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--sp-text-muted)] uppercase tracking-wider">
+                Match Report
+              </span>
+              {match.result_outcome && (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                  isMatch
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {isMatch ? 'Compatible' : 'Incompatible'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="px-4 py-3 space-y-3">
+            {/* Outcome line */}
+            {match.result_outcome && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">
+                  Agent spoke with <span className="font-mono" style={{ color: 'var(--sp-primary)' }}>@{opponent.slice(0, 10)}...</span>
+                </span>
+              </div>
+            )}
+
+            {/* AI Reasoning */}
+            {match.result_reasoning && (
+              <div className="p-2.5 rounded bg-black/30 border border-[var(--sp-border)]">
+                <p className="text-xs text-[var(--sp-text-muted)] mb-1 font-bold">Reasoning:</p>
+                <p className="text-sm">{match.result_reasoning}</p>
+              </div>
+            )}
+
+            {/* Categorized Feedback */}
+            <div className="space-y-1.5">
+              {/* Strengths from feedback */}
+              {feedback?.strengths?.map((s: string, i: number) => (
+                <div key={`str-${i}`} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 mt-0.5 text-green-400">&#9989;</span>
+                  <span className="text-green-400/90">{s}</span>
+                </div>
+              ))}
+
+              {/* Commonalities */}
+              {commonalities.map((c: string, i: number) => (
+                <div key={`com-${i}`} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 mt-0.5 text-green-400">&#9989;</span>
+                  <span className="text-[var(--sp-text-muted)]">
+                    <span className="text-green-400/70">Common:</span> {c}
+                  </span>
+                </div>
+              ))}
+
+              {/* Differences (partial matches) */}
+              {differences.map((d: string, i: number) => (
+                <div key={`dif-${i}`} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 mt-0.5 text-yellow-400">&#9888;&#65039;</span>
+                  <span className="text-[var(--sp-text-muted)]">
+                    <span className="text-yellow-400/70">Partial:</span> {d}
+                  </span>
+                </div>
+              ))}
+
+              {/* Weaknesses from feedback */}
+              {feedback?.weaknesses?.map((w: string, i: number) => (
+                <div key={`weak-${i}`} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 mt-0.5 text-red-400">&#10060;</span>
+                  <span className="text-red-400/90">
+                    <span className="text-red-400/70">Incompatible:</span> {w}
+                  </span>
+                </div>
+              ))}
+
+              {/* Suggestions from feedback */}
+              {feedback?.suggestions?.map((s: string, i: number) => (
+                <div key={`sug-${i}`} className="flex items-start gap-2 text-sm">
+                  <span className="shrink-0 mt-0.5 text-blue-400">&#128161;</span>
+                  <span className="text-blue-400/90">
+                    <span className="text-blue-400/70">Suggestion:</span> {s}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action links */}
+            <div className="flex gap-3 pt-2 border-t border-[var(--sp-border)]">
+              <Link
+                href={`/profile/${opponent}`}
+                className="text-xs px-3 py-1.5 rounded border border-[var(--sp-border)] hover:border-[var(--sp-primary)] hover:text-[var(--sp-primary)] transition-colors"
+              >
+                View Profile
+              </Link>
+              {match.conversation_id && (
+                <Link
+                  href={`/conversation/${match.conversation_id}`}
+                  className="text-xs px-3 py-1.5 rounded border border-[var(--sp-border)] hover:border-[var(--sp-primary)] hover:text-[var(--sp-primary)] transition-colors"
+                >
+                  View Conversation
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Commonalities & Differences */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {commonalities.length > 0 && (
-          <div>
-            <p className="text-xs text-green-400 mb-1">✅ Ortak noktalar</p>
-            <ul className="space-y-1">
-              {commonalities.map((c: string, i: number) => (
-                <li key={i} className="text-xs text-[var(--sp-text-muted)]">• {c}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {differences.length > 0 && (
-          <div>
-            <p className="text-xs text-yellow-400 mb-1">⚠️ Farklılıklar</p>
-            <ul className="space-y-1">
-              {differences.map((d: string, i: number) => (
-                <li key={i} className="text-xs text-[var(--sp-text-muted)]">• {d}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
 
       {/* Action Buttons */}
       {onApprove && onReject && (
@@ -354,7 +443,7 @@ function MatchCard({
             disabled={actionLoading}
             className="flex-1 px-4 py-2.5 rounded text-sm border border-[var(--sp-border)] hover:border-red-400 hover:text-red-400 transition-colors disabled:opacity-50"
           >
-            ❌ Reject
+            Reject
           </button>
           <button
             onClick={onApprove}
@@ -362,7 +451,7 @@ function MatchCard({
             className="flex-1 px-4 py-2.5 rounded text-sm font-bold transition-colors disabled:opacity-50"
             style={{ background: 'var(--sp-primary)' }}
           >
-            {actionLoading ? '⏳ Processing...' : '💕 Approve Match'}
+            {actionLoading ? 'Processing...' : 'Approve Match'}
           </button>
         </div>
       )}
@@ -370,7 +459,7 @@ function MatchCard({
       {approved && (
         <div className="pt-3 border-t border-[var(--sp-border)]">
           <p className="text-sm text-green-400 text-center">
-            🎉 Both parties approved! Your agents will schedule a date.
+            Both parties approved! Your agents will schedule a date.
           </p>
         </div>
       )}

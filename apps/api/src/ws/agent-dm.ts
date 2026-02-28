@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
+import { verifyMessage } from 'ethers';
 import { SOULPAIR_CONFIG } from '@soulpair/shared';
 import type { WSClientMessage, WSServerMessage, ConversationResult } from '@soulpair/shared';
 import { AuthenticatedClient, DMRoom, parseWSMessage, sendWSMessage, broadcastToRoom } from './protocol';
@@ -134,8 +135,35 @@ function handleMessage(ws: WebSocket, msg: WSClientMessage): void {
   }
 }
 
-function handleAuth(ws: WebSocket, walletAddress: string, _signature: string, role: 'agent' | 'viewer'): void {
-  // TODO: Verify wallet signature in production
+function handleAuth(ws: WebSocket, walletAddress: string, signature: string, role: 'agent' | 'viewer'): void {
+  // Viewers don't need wallet verification
+  if (role === 'viewer') {
+    const client: AuthenticatedClient = {
+      ws,
+      walletAddress: walletAddress || 'viewer',
+      role,
+      subscribedRooms: new Set(),
+      isDashboardSubscriber: false,
+    };
+    clients.set(ws, client);
+    sendWSMessage(client, { type: 'auth_result', success: true });
+    return;
+  }
+
+  // Agents must verify wallet ownership
+  try {
+    const expectedMessage = `Soulpair Auth: ${walletAddress}`;
+    const recoveredAddress = verifyMessage(expectedMessage, signature);
+
+    if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      sendWSMessage(ws, { type: 'auth_result', success: false, error: 'Signature verification failed' });
+      return;
+    }
+  } catch (err) {
+    sendWSMessage(ws, { type: 'auth_result', success: false, error: 'Invalid signature' });
+    return;
+  }
+
   const client: AuthenticatedClient = {
     ws,
     walletAddress,

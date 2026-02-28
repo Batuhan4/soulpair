@@ -92,3 +92,25 @@ export function useRecentMatches() {
 
   return matches;
 }
+
+export function useProfile(address: string | undefined) {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!address) { setLoading(false); return; }
+    const load = async () => {
+      try {
+        const data = await fetchAPI<any>(`/api/profile/${address}`);
+        setProfile(data);
+      } catch (e) {
+        console.error('Failed to fetch profile:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [address]);
+
+  return { profile, loading };
+}

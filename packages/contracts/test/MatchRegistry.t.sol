@@ -11,11 +11,13 @@ contract MatchRegistryTest is Test {
     address user1 = makeAddr("user1");
     address user2 = makeAddr("user2");
     address treasury = makeAddr("treasury");
+    address matchPool = makeAddr("matchPool");
+    address ecosystemFund = makeAddr("ecosystemFund");
     address relayer = makeAddr("relayer");
 
     function setUp() public {
         soulProfile = new SoulProfile();
-        registry = new MatchRegistry(address(soulProfile), treasury);
+        registry = new MatchRegistry(address(soulProfile), treasury, matchPool, ecosystemFund);
         soulProfile.setMatchRegistry(address(registry));
 
         // Create profiles
@@ -71,7 +73,7 @@ contract MatchRegistryTest is Test {
         assertEq(soulProfile.getProfile(user2).matchCount, 1);
     }
 
-    function test_TreasuryFee() public {
+    function test_FeeDistribution_70_20_10() public {
         uint256 fee = registry.calculateFee(user1, user2);
         vm.deal(relayer, 1 ether);
 
@@ -79,15 +81,21 @@ contract MatchRegistryTest is Test {
         registry.createMatch{value: fee}(user1, user2, "QmConvCID");
 
         uint256 treasuryBefore = treasury.balance;
+        uint256 matchPoolBefore = matchPool.balance;
+        uint256 ecosystemBefore = ecosystemFund.balance;
 
         vm.prank(user1);
         registry.approveMatch(0);
         vm.prank(user2);
         registry.approveMatch(0);
 
-        uint256 treasuryAfter = treasury.balance;
-        uint256 expectedTreasury = (fee * 10) / 100; // 10%
-        assertEq(treasuryAfter - treasuryBefore, expectedTreasury);
+        uint256 expectedTreasury = (fee * 70) / 100;
+        uint256 expectedMatchPool = (fee * 20) / 100;
+        uint256 expectedEcosystem = fee - expectedTreasury - expectedMatchPool;
+
+        assertEq(treasury.balance - treasuryBefore, expectedTreasury, "Treasury should get 70%");
+        assertEq(matchPool.balance - matchPoolBefore, expectedMatchPool, "Match pool should get 20%");
+        assertEq(ecosystemFund.balance - ecosystemBefore, expectedEcosystem, "Ecosystem fund should get 10%");
     }
 
     function test_RejectAndRefund() public {
@@ -158,11 +166,90 @@ contract MatchRegistryTest is Test {
         registry.setBaseFee(0.02 ether);
         assertEq(registry.baseFee(), 0.02 ether);
 
-        registry.setTreasuryFeePercent(20);
-        assertEq(registry.treasuryFeePercent(), 20);
-
         address newTreasury = makeAddr("newTreasury");
         registry.setTreasury(newTreasury);
         assertEq(registry.treasury(), newTreasury);
+
+        address newMatchPool = makeAddr("newMatchPool");
+        registry.setMatchPool(newMatchPool);
+        assertEq(registry.matchPool(), newMatchPool);
+
+        address newEcosystem = makeAddr("newEcosystem");
+        registry.setEcosystemFund(newEcosystem);
+        assertEq(registry.ecosystemFund(), newEcosystem);
+    }
+
+    function test_SetDateDetails() public {
+        uint256 fee = registry.calculateFee(user1, user2);
+        vm.deal(relayer, 1 ether);
+
+        vm.prank(relayer);
+        registry.createMatch{value: fee}(user1, user2, "QmConvCID");
+
+        // Both approve first
+        vm.prank(user1);
+        registry.approveMatch(0);
+        vm.prank(user2);
+        registry.approveMatch(0);
+
+        // User1 sets date details
+        uint256 dateTime = block.timestamp + 7 days;
+        vm.prank(user1);
+        registry.setDateDetails(0, dateTime, "Istanbul, Kadikoy");
+
+        MatchRegistry.Match memory m = registry.getMatch(0);
+        assertEq(m.dateTimestamp, dateTime);
+        assertEq(m.dateLocation, "Istanbul, Kadikoy");
+    }
+
+    function test_SetDateDetails_NotApproved() public {
+        uint256 fee = registry.calculateFee(user1, user2);
+        vm.deal(relayer, 1 ether);
+
+        vm.prank(relayer);
+        registry.createMatch{value: fee}(user1, user2, "QmConvCID");
+
+        // Try to set date details on a pending match
+        vm.prank(user1);
+        vm.expectRevert("Not approved");
+        registry.setDateDetails(0, block.timestamp + 1 days, "Somewhere");
+    }
+
+    function test_SetDateDetails_NotParticipant() public {
+        uint256 fee = registry.calculateFee(user1, user2);
+        vm.deal(relayer, 1 ether);
+
+        vm.prank(relayer);
+        registry.createMatch{value: fee}(user1, user2, "QmConvCID");
+
+        vm.prank(user1);
+        registry.approveMatch(0);
+        vm.prank(user2);
+        registry.approveMatch(0);
+
+        // Stranger tries to set date
+        address stranger = makeAddr("stranger");
+        vm.prank(stranger);
+        vm.expectRevert("Not participant");
+        registry.setDateDetails(0, block.timestamp + 1 days, "Somewhere");
+    }
+
+    function test_SuccessRateUpdatedOnApproval() public {
+        uint256 fee = registry.calculateFee(user1, user2);
+        vm.deal(relayer, 1 ether);
+
+        vm.prank(relayer);
+        registry.createMatch{value: fee}(user1, user2, "QmConvCID");
+
+        vm.prank(user1);
+        registry.approveMatch(0);
+        vm.prank(user2);
+        registry.approveMatch(0);
+
+        // After 1 conversation and 1 match, successRate should be 100
+        SoulProfile.Profile memory p1 = soulProfile.getProfile(user1);
+        assertEq(p1.successRate, 100);
+        SoulProfile.Profile memory p2 = soulProfile.getProfile(user2);
+        assertEq(p2.successRate, 100);
     }
 }

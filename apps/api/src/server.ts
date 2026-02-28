@@ -12,7 +12,7 @@ import { setupWebSocket, getStats } from './ws/agent-dm';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT || 3001);
 
 // ===== Middleware =====
 app.use(helmet());
