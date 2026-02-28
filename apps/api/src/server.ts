@@ -21,8 +21,12 @@ app.use(cors({
     // Allow localhost on any port + no origin (curl/server-to-server)
     if (!origin || /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
       callback(null, true);
+    } else if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      callback(null, true);
+    } else if (origin?.endsWith('.vercel.app')) {
+      callback(null, true);
     } else {
-      callback(null, process.env.FRONTEND_URL || false);
+      callback(null, false);
     }
   },
   credentials: true,
