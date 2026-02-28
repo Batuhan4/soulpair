@@ -72,11 +72,28 @@ router.get('/conversations', (_req: Request, res: Response) => {
            (SELECT content FROM conversation_messages WHERE conversation_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message
     FROM conversations c
     WHERE c.status IN ('waiting', 'active')
-    ORDER BY c.started_at DESC
+    ORDER BY
+      (SELECT COUNT(*) FROM conversation_messages WHERE conversation_id = c.id) DESC,
+      c.started_at DESC
     LIMIT 20
   `).all();
 
   res.json({ success: true, data: conversations });
+});
+
+// GET /api/stats/live-feed — Recent messages across all active conversations
+router.get('/live-feed', (_req: Request, res: Response) => {
+  const messages = db.prepare(`
+    SELECT m.id, m.conversation_id, m.from_address, m.content, m.timestamp,
+           c.agent1_address, c.agent2_address
+    FROM conversation_messages m
+    JOIN conversations c ON c.id = m.conversation_id
+    WHERE c.status IN ('waiting', 'active')
+    ORDER BY m.timestamp DESC
+    LIMIT 50
+  `).all();
+
+  res.json({ success: true, data: messages.reverse() });
 });
 
 // GET /api/stats/recent-matches — Recent successful matches

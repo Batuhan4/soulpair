@@ -31,7 +31,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // ===== Simple rate limiter =====
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 100;
+const RATE_LIMIT = 500;
 const RATE_WINDOW = 60 * 1000;
 
 app.use((req, res, next) => {
