@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --sp-primary: #ff5a36;
+  --sp-primary-light: #ff8a6b;
+  --sp-bg: #0e0c0d;
+  --sp-bg-card: #1e1918;
+  --sp-text: #f5f0ef;
+  --sp-text-muted: #a6a1a0;
+  --sp-border: #46403e;
+  --sp-green: #22c55e;
+  --sp-red: #ef4444;
+}
+
+body {
+  background: var(--sp-bg);
+  color: var(--sp-text);
+  font-family: 'Fragment Mono', 'JetBrains Mono', monospace;
+}
+
+/* Glow effect for live indicator */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--sp-red), 0 0 10px var(--sp-red); }
+  50% { box-shadow: 0 0 10px var(--sp-red), 0 0 20px var(--sp-red), 0 0 30px var(--sp-red); }
+}
+
+.live-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Typing animation */
+@keyframes typing-dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--sp-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sp-border);
+  border-radius: 3px;
+}

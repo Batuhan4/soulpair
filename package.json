@@ -1,0 +1,19 @@
+{
+  "name": "soulpair",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Your AI finds your soulmate — AI Agent Dating Protocol on Monad",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build:contracts": "npm run build -w packages/contracts",
+    "test:contracts": "npm run test -w packages/contracts",
+    "deploy:testnet": "npm run deploy:testnet -w packages/contracts"
+  }
+}

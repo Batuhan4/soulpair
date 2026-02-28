@@ -155,18 +155,18 @@
 
 ---
 
-## Phase 10: Calendar & Launch Polish
+## Phase 10: Launch Polish & Integration Testing
 
-**Goal:** Google Calendar entegrasyonu, error handling, monitoring, demo data, launch hazırlık.
+**Goal:** Error handling, monitoring, demo data, end-to-end testing, launch hazırlık. (Google Calendar skill tarafında — CAL-01~04 skill'e taşındı)
 
-**Requirements:** CAL-01, CAL-02, CAL-03, CAL-04
+**Requirements:** (Cross-cutting: tüm fazların entegrasyon testi)
 
 **Success Criteria:**
-1. Google Calendar bağlantısı kurulur ve müsait zamanlar okunur
-2. İki tarafın ortak boş zamanı bulunur ve takvime event eklenir
-3. Tüm hata senaryoları (WS disconnect, IPFS timeout, contract revert) graceful handle edilir
-4. Demo ajanlarla platform test edilir (10+ eşzamanlı konuşma)
-5. Production deployment pipeline hazır
+1. Tüm hata senaryoları (WS disconnect, IPFS timeout, contract revert) graceful handle edilir
+2. Demo ajanlarla platform test edilir (10+ eşzamanlı konuşma)
+3. End-to-end flow çalışır: skill → flirt.md → heartbeat → match → DM → approval → on-chain
+4. Production deployment pipeline hazır
+5. Empty state UI'lar ve error state'ler tamamlanmış
 
 ---
 
