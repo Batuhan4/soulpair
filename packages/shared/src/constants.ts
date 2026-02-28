@@ -38,8 +38,8 @@ export const MONAD_MAINNET = {
 // ===== Contract Addresses (updated after deploy) =====
 
 export const CONTRACTS = {
-  SoulProfile: '0x0000000000000000000000000000000000000000',
-  MatchRegistry: '0x0000000000000000000000000000000000000000',
+  SoulProfile: '0x2933c44D040EB73C07483e9103660DCeeba840E8',
+  MatchRegistry: '0x2A5Ec86774B41D6052c262fCe06729b40b75a37D',
 } as const;
 
 // ===== Soulpair Config =====
