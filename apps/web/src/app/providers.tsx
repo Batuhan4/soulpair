@@ -1,21 +1,9 @@
 'use client';
 
 import { WagmiProvider, createConfig, http } from 'wagmi';
-import { defineChain } from 'viem';
+import { monadTestnet } from 'viem/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected } from 'wagmi/connectors';
-
-const monadTestnet = defineChain({
-  id: 10143,
-  name: 'Monad Testnet',
-  nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://testnet-rpc.monad.xyz'] },
-  },
-  blockExplorers: {
-    default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
-  },
-});
 
 const config = createConfig({
   chains: [monadTestnet],

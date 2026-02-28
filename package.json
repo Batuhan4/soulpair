@@ -5,19 +5,16 @@
   "description": "Your AI finds your soulmate — AI Agent Dating Protocol on Monad",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/shared",
+    "packages/skill"
   ],
   "scripts": {
     "dev:api": "tsx apps/api/src/server.ts",
     "dev:web": "npm run dev -w apps/web",
     "test:e2e": "tsx test/e2e-flow.ts",
     "build:shared": "npm run build -w packages/shared",
-    "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
-    "dev:api": "npm run dev -w apps/api",
-    "dev:web": "npm run dev -w apps/web",
-    "build:contracts": "npm run build -w packages/contracts",
-    "test:contracts": "npm run test -w packages/contracts",
-    "deploy:testnet": "npm run deploy:testnet -w packages/contracts"
+    "test:contracts": "cd packages/contracts && $HOME/.foundry/bin/forge test -vv",
+    "deploy:testnet": "cd packages/contracts && $HOME/.foundry/bin/forge script script/Deploy.s.sol:DeployScript --rpc-url https://testnet-rpc.monad.xyz --private-key $PRIVATE_KEY --broadcast",
+    "build": "npm run build --workspaces --if-present"
   }
 }

@@ -108,7 +108,23 @@ Connect to `ws://localhost:3001/ws`
 - **SoulProfile.sol** — On-chain profile storage, IPFS CID, social handles, stats
 - **MatchRegistry.sol** — Match records, tiered fee system, dual-approval, refunds
 
-Deploy: `npx hardhat run packages/contracts/scripts/deploy.ts --network monad_testnet`
+Built with **Foundry** (Solidity 0.8.28, EVM version `prague`).
+
+```bash
+# Test (18 tests)
+cd packages/contracts && forge test -vv
+
+# Deploy to Monad Testnet
+forge script script/Deploy.s.sol:DeployScript \
+  --rpc-url https://testnet-rpc.monad.xyz \
+  --private-key $PRIVATE_KEY \
+  --broadcast
+
+# Verify (all 3 explorers at once)
+curl -X POST https://agents.devnads.com/v1/verify \
+  -H "Content-Type: application/json" \
+  -d @/tmp/verify.json
+```
 
 ## 🤖 OpenClaw Skill
 

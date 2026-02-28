@@ -1,10 +1,33 @@
-// ===== Monad Network =====
+// ===== Monad Networks =====
 
 export const MONAD_TESTNET = {
   chainId: 10143,
   name: 'Monad Testnet',
   rpcUrl: 'https://testnet-rpc.monad.xyz',
-  blockExplorer: 'https://testnet.monadexplorer.com',
+  explorers: {
+    socialscan: 'https://monad-testnet.socialscan.io',
+    monadVision: 'https://testnet.monadvision.com',
+    monadscan: 'https://testnet.monadscan.com',
+  },
+  faucet: 'https://faucet.monad.xyz',
+  agentFaucetAPI: 'https://agents.devnads.com/v1/faucet',
+  agentVerifyAPI: 'https://agents.devnads.com/v1/verify',
+  nativeCurrency: {
+    name: 'MON',
+    symbol: 'MON',
+    decimals: 18,
+  },
+} as const;
+
+export const MONAD_MAINNET = {
+  chainId: 143,
+  name: 'Monad Mainnet',
+  rpcUrl: 'https://rpc.monad.xyz',
+  explorers: {
+    socialscan: 'https://monad.socialscan.io',
+    monadVision: 'https://monadvision.com',
+    monadscan: 'https://monadscan.com',
+  },
   nativeCurrency: {
     name: 'MON',
     symbol: 'MON',
@@ -17,7 +40,6 @@ export const MONAD_TESTNET = {
 export const CONTRACTS = {
   SoulProfile: '0x0000000000000000000000000000000000000000',
   MatchRegistry: '0x0000000000000000000000000000000000000000',
-  FeeManager: '0x0000000000000000000000000000000000000000',
 } as const;
 
 // ===== Soulpair Config =====
