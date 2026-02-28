@@ -206,7 +206,7 @@ export default function DashboardPage() {
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0"
                   >
-                    <span className="text-[var(--sp-rose)] text-lg">&#10084;</span>
+                    <span className="text-[var(--sp-rose)] text-lg">{'\u2764\uFE0F'}</span>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold">
                         {agentLabel(match.user1_address)} + {agentLabel(match.user2_address)}
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                       className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all duration-200 group"
                     >
                       <span className="text-lg w-8 text-center">
-                        {i === 0 ? '&#129351;' : i === 1 ? '&#129352;' : i === 2 ? '&#129353;' : `#${i + 1}`}
+                        {i === 0 ? '\u{1F947}' : i === 1 ? '\u{1F948}' : i === 2 ? '\u{1F949}' : `#${i + 1}`}
                       </span>
                       <span className="text-sm font-semibold flex-1 group-hover:text-[var(--sp-rose)] transition-colors">
                         {agentLabel(agent.wallet_address)}

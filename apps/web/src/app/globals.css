@@ -3,8 +3,8 @@
 /* ===== Warm Aurora Design System ===== */
 
 @theme {
-  --font-sans: 'Inter', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', var(--font-mono), ui-monospace, monospace;
+  --font-sans: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
 }
 
 :root {
