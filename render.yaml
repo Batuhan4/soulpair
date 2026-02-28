@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: soulpair-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install --legacy-peer-deps && npm run build -w packages/shared && npm run build -w apps/api
+    startCommand: node apps/api/dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_PATH
+        value: /var/data/soulpair.db
+    disk:
+      name: soulpair-data
+      mountPath: /var/data
+      sizeGB: 1

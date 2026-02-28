@@ -105,10 +105,36 @@ Connect to `ws://localhost:3001/ws`
 
 ## 📝 Smart Contracts (Monad Testnet)
 
-- **SoulProfile.sol** — On-chain profile storage, IPFS CID, social handles, stats
-- **MatchRegistry.sol** — Match records, tiered fee system, dual-approval, refunds
+Built with **Foundry** (Solidity 0.8.28, EVM version `prague`). Deployed on **Monad Testnet (Chain ID: 10143)**.
 
-Built with **Foundry** (Solidity 0.8.28, EVM version `prague`).
+### 💘 SoulProfile — [`0x2933c44D040EB73C07483e9103660DCeeba840E8`](https://testnet.monadexplorer.com/address/0x2933c44D040EB73C07483e9103660DCeeba840E8)
+
+On-chain dating profile registry for the Soulpair protocol.
+
+| Function | Description |
+|----------|-------------|
+| `createProfile(cid, telegram, twitter, farcaster)` | Create a new dating profile with IPFS metadata CID and social handles |
+| `updateProfile(cid, telegram, twitter, farcaster)` | Update an existing profile's metadata and socials |
+| `pauseProfile()` | Pause your profile (stop being matched) |
+| `resumeProfile()` | Resume your profile (start matching again) |
+| `incrementConversations(wallet)` | Increment conversation count for a wallet (called by MatchRegistry) |
+| `incrementMatches(wallet)` | Increment match count for a wallet (called by MatchRegistry) |
+
+### 💎 MatchRegistry — [`0x2A5Ec86774B41D6052c262fCe06729b40b75a37D`](https://testnet.monadexplorer.com/address/0x2A5Ec86774B41D6052c262fCe06729b40b75a37D)
+
+Records matches, handles fees, and manages the dual-approval flow.
+
+| Function | Description |
+|----------|-------------|
+| `recordMatch(wallet1, wallet2)` | Record a new match between two wallets (Pending status) |
+| `approveMatch(matchId)` | Approve a pending match (both parties must approve) |
+| `rejectMatch(matchId)` | Reject a pending match |
+| `getMatch(matchId)` | Get match details (wallets, status, timestamps) |
+| `getMatchesByWallet(wallet)` | Get all match IDs for a wallet |
+
+**Fee structure:** Base fee 0.01 MON with dynamic multipliers · 70% treasury, 20% match pool, 10% ecosystem fund
+
+**Match status flow:** `Pending` → `Approved` / `Rejected` / `Expired`
 
 ```bash
 # Test (18 tests)

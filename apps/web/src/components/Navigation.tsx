@@ -22,6 +22,7 @@ export function Navigation() {
         {/* Logo */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-2xl">💘</span>
             <span className="text-xl font-bold gradient-text tracking-tight">SOULPAIR</span>
           </Link>
 

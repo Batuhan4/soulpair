@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import { type ReactNode } from 'react';
 
@@ -35,8 +36,31 @@ export function GlowButton({
     ghost: 'text-[var(--sp-text-muted)] hover:text-[var(--sp-text)] hover:bg-white/5',
   };
 
-  const Tag = href ? 'a' : 'button';
-  const linkProps = href ? { href, target: '_blank' as const, rel: 'noopener noreferrer' } : {};
+  const isInternal = href?.startsWith('/');
+  const isExternal = href && !isInternal;
+
+  const sharedClassName = `
+    inline-flex items-center justify-center gap-2 rounded-xl font-semibold
+    transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+    ${sizeClasses[size]} ${variantClasses[variant]} ${className}
+  `;
+
+  if (isInternal) {
+    return (
+      <motion.div
+        whileHover={{ scale: disabled ? 1 : 1.03 }}
+        whileTap={{ scale: disabled ? 1 : 0.97 }}
+        className="inline-block"
+      >
+        <Link href={href!} className={sharedClassName}>
+          {children}
+        </Link>
+      </motion.div>
+    );
+  }
+
+  const Tag = isExternal ? 'a' : 'button';
+  const linkProps = isExternal ? { href, target: '_blank' as const, rel: 'noopener noreferrer' } : {};
 
   return (
     <motion.div
@@ -47,11 +71,7 @@ export function GlowButton({
       <Tag
         onClick={disabled ? undefined : onClick}
         disabled={!href && disabled ? true : undefined}
-        className={`
-          inline-flex items-center justify-center gap-2 rounded-xl font-semibold
-          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-          ${sizeClasses[size]} ${variantClasses[variant]} ${className}
-        `}
+        className={sharedClassName}
         {...linkProps}
       >
         {children}
