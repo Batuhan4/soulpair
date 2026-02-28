@@ -7,7 +7,9 @@ import http from 'http';
 import profileRoutes from './routes/profile';
 import matchRoutes from './routes/match';
 import statsRoutes from './routes/stats';
+import conversationRoutes from './routes/conversation';
 import { setupWebSocket, getStats } from './ws/agent-dm';
+import { errorHandler, notFoundHandler } from './middleware/error-handler';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,8 +24,8 @@ app.use(express.json({ limit: '1mb' }));
 
 // ===== Simple rate limiter =====
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 100; // requests per window
-const RATE_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT = 100;
+const RATE_WINDOW = 60 * 1000;
 
 app.use((req, res, next) => {
   const key = req.ip || 'unknown';
@@ -45,7 +47,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cleanup rate limit map periodically
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of requestCounts) {
@@ -54,12 +55,13 @@ setInterval(() => {
 }, 60000);
 
 // ===== Routes =====
+// All match-related routes are under /api (heartbeat, match/*, matches/*)
+app.use('/api', matchRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/profiles', profileRoutes);
-app.use('/api/match', matchRoutes);
-app.use('/api/matches', matchRoutes);
 app.use('/api/stats', statsRoutes);
-app.use('/api/heartbeat', matchRoutes);
+app.use('/api/conversation', conversationRoutes);
+app.use('/api/conversations', conversationRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -74,6 +76,10 @@ app.get('/api/health', (_req, res) => {
     },
   });
 });
+
+// ===== Error Handling =====
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // ===== HTTP + WebSocket Server =====
 const server = http.createServer(app);

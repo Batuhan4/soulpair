@@ -23,18 +23,18 @@ export const createProfileSchema = z.object({
   twitterHandle: z.string().optional(),
   instagramHandle: z.string().optional(),
   linkedinHandle: z.string().optional(),
-  signature: signatureSchema,
+  signature: signatureSchema.optional(),
 });
 
 export const heartbeatSchema = z.object({
   walletAddress: ethereumAddressSchema,
   agentId: z.string().min(1).max(100),
   status: z.enum(['ready', 'busy', 'offline']),
-  signature: signatureSchema,
+  signature: signatureSchema.optional(),
 });
 
 export const matchResultSchema = z.object({
-  conversationId: z.string().uuid(),
+  conversationId: z.string().min(1),
   result: z.object({
     outcome: z.enum(['match', 'no-match']),
     confidence: z.number().min(0).max(1),
@@ -50,14 +50,15 @@ export const matchResultSchema = z.object({
       .optional(),
   }),
   agentAddress: ethereumAddressSchema,
-  signature: signatureSchema,
+  signature: signatureSchema.optional(),
 });
 
 export const matchApprovalSchema = z.object({
-  matchId: z.string().uuid(),
+  matchId: z.string().min(1),
   approved: z.boolean(),
   walletAddress: ethereumAddressSchema,
-  signature: signatureSchema,
+  reason: z.string().optional(),
+  signature: signatureSchema.optional(),
 });
 
 // ===== flirt.md Schema =====

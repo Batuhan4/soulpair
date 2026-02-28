@@ -36,15 +36,12 @@ router.post('/heartbeat', (req: Request, res: Response) => {
   // If agent is ready, run matchmaking
   let assignments: ReturnType<typeof getPendingAssignments> = [];
   if (status === 'ready') {
-    // Try to create new matches
     const newMatches = runMatchmaking();
 
-    // Create WebSocket rooms for new matches
     for (const match of newMatches) {
       createRoom(match.conversationId, match.agent1Address, match.agent2Address);
     }
 
-    // Get all pending assignments for this agent
     assignments = getPendingAssignments(walletAddress);
   }
 
@@ -58,7 +55,7 @@ router.post('/heartbeat', (req: Request, res: Response) => {
 });
 
 // GET /api/match/queue — Get pending match assignments for agent
-router.get('/queue', (req: Request, res: Response) => {
+router.get('/match/queue', (req: Request, res: Response) => {
   const walletAddress = req.query.wallet as string;
   if (!walletAddress) {
     res.status(400).json({ success: false, error: 'wallet query param required' });
@@ -70,7 +67,7 @@ router.get('/queue', (req: Request, res: Response) => {
 });
 
 // POST /api/match/result — Submit conversation result
-router.post('/result', (req: Request, res: Response) => {
+router.post('/match/result', (req: Request, res: Response) => {
   const parsed = matchResultSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, error: parsed.error.message });
@@ -79,11 +76,7 @@ router.post('/result', (req: Request, res: Response) => {
 
   const { conversationId, result, agentAddress } = parsed.data;
 
-  // Verify conversation exists and agent is participant
-  const conv = db.prepare(`
-    SELECT * FROM conversations WHERE id = ?
-  `).get(conversationId) as any;
-
+  const conv = db.prepare('SELECT * FROM conversations WHERE id = ?').get(conversationId) as any;
   if (!conv) {
     res.status(404).json({ success: false, error: 'Conversation not found' });
     return;
@@ -117,16 +110,29 @@ router.post('/result', (req: Request, res: Response) => {
   );
 
   // Update match queue
+  db.prepare('UPDATE match_queue SET status = ? WHERE conversation_id = ?').run('completed', conversationId);
+
+  // If match, create match record
+  if (result.outcome === 'match') {
+    const { v4: uuidv4 } = require('uuid');
+    const matchId = uuidv4();
+    db.prepare(`
+      INSERT INTO matches (id, conversation_id, user1_address, user2_address, status)
+      VALUES (?, ?, ?, ?, 'pending_approval')
+    `).run(matchId, conversationId, conv.agent1_address, conv.agent2_address);
+  }
+
+  // Update conversation counts
   db.prepare(`
-    UPDATE match_queue SET status = 'completed'
-    WHERE conversation_id = ?
-  `).run(conversationId);
+    UPDATE agent_heartbeats SET active_conversations = MAX(0, active_conversations - 1)
+    WHERE wallet_address IN (?, ?)
+  `).run(conv.agent1_address, conv.agent2_address);
 
   res.json({ success: true, data: { conversationId, result: result.outcome } });
 });
 
 // POST /api/match/approve — User approves or rejects a match
-router.post('/approve', (req: Request, res: Response) => {
+router.post('/match/approve', (req: Request, res: Response) => {
   const parsed = matchApprovalSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ success: false, error: parsed.error.message });
@@ -163,10 +169,7 @@ router.post('/approve', (req: Request, res: Response) => {
   const updated = db.prepare('SELECT * FROM matches WHERE id = ?').get(matchId) as any;
   if (updated.user1_approved && updated.user2_approved) {
     db.prepare('UPDATE matches SET status = ? WHERE id = ?').run('approved', matchId);
-
-    // Update profile match counts
     db.prepare('UPDATE profiles SET match_count = match_count + 1 WHERE wallet_address IN (?, ?)').run(match.user1_address, match.user2_address);
-
     res.json({ success: true, data: { matchId, status: 'approved', bothApproved: true } });
     return;
   }
@@ -175,7 +178,7 @@ router.post('/approve', (req: Request, res: Response) => {
 });
 
 // GET /api/matches/:address — Get user's match history
-router.get('/:address', (req: Request, res: Response) => {
+router.get('/matches/:address', (req: Request, res: Response) => {
   const { address } = req.params;
 
   const matches = db.prepare(`
