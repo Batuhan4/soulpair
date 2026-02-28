@@ -1,48 +1,185 @@
 @import "tailwindcss";
 
+/* ===== Warm Aurora Design System ===== */
+
+@theme {
+  --font-sans: 'Inter', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', var(--font-mono), ui-monospace, monospace;
+}
+
 :root {
-  --sp-primary: #ff5a36;
-  --sp-primary-light: #ff8a6b;
-  --sp-bg: #0e0c0d;
-  --sp-bg-card: #1e1918;
-  --sp-text: #f5f0ef;
-  --sp-text-muted: #a6a1a0;
-  --sp-border: #46403e;
-  --sp-green: #22c55e;
-  --sp-red: #ef4444;
+  /* Background */
+  --sp-bg: #0c0a09;
+  --sp-bg-card: #1c1917;
+  --sp-bg-hover: #292524;
+
+  /* Aurora Colors */
+  --sp-rose: #F43F5E;
+  --sp-rose-light: #FB7185;
+  --sp-amber: #F59E0B;
+  --sp-amber-light: #FBBF24;
+  --sp-violet: #8B5CF6;
+  --sp-violet-light: #A78BFA;
+  --sp-orange: #F97316;
+  --sp-orange-light: #FB923C;
+
+  /* Text */
+  --sp-text: #FEF2F2;
+  --sp-text-muted: #A8A29E;
+
+  /* Semantic */
+  --sp-accent: #F43F5E;
+  --sp-success: #10B981;
+  --sp-danger: #DC2626;
+  --sp-border: #292524;
+  --sp-border-light: #3f3a38;
+
+  /* Legacy aliases */
+  --sp-primary: #F43F5E;
+  --sp-primary-light: #FB7185;
+  --sp-green: #10B981;
+  --sp-red: #DC2626;
 }
 
 body {
   background: var(--sp-bg);
   color: var(--sp-text);
-  font-family: 'Fragment Mono', 'JetBrains Mono', monospace;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glow effect for live indicator */
+/* ===== Aurora Background Blobs ===== */
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(80px, -60px) scale(1.15); }
+  50% { transform: translate(-40px, 80px) scale(0.95); }
+  75% { transform: translate(60px, 40px) scale(1.1); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-100px, 60px) scale(1.2); }
+  66% { transform: translate(60px, -80px) scale(0.9); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1.05); }
+  50% { transform: translate(90px, 70px) scale(0.9); }
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.3;
+  will-change: transform;
+  pointer-events: none;
+}
+.aurora-blob-1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--sp-rose) 0%, transparent 70%);
+  top: -10%; left: -5%;
+  animation: aurora-drift-1 20s ease-in-out infinite;
+}
+.aurora-blob-2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--sp-amber) 0%, transparent 70%);
+  top: 30%; right: -10%;
+  animation: aurora-drift-2 25s ease-in-out infinite;
+}
+.aurora-blob-3 {
+  width: 550px; height: 550px;
+  background: radial-gradient(circle, var(--sp-violet) 0%, transparent 70%);
+  bottom: -10%; left: 20%;
+  animation: aurora-drift-3 22s ease-in-out infinite;
+}
+.aurora-blob-4 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--sp-orange) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  animation: aurora-drift-1 18s ease-in-out infinite reverse;
+}
+
+/* ===== Glassmorphism ===== */
+.glass {
+  background: rgba(28, 25, 23, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.glass-hover:hover {
+  background: rgba(28, 25, 23, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.glass-strong {
+  background: rgba(28, 25, 23, 0.8);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Glow Effects ===== */
+.glow-rose {
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.15), 0 0 60px rgba(244, 63, 94, 0.05);
+}
+.glow-rose-strong {
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.3), 0 0 60px rgba(244, 63, 94, 0.1);
+}
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 0 60px rgba(245, 158, 11, 0.05);
+}
+.glow-violet {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 60px rgba(139, 92, 246, 0.05);
+}
+.glow-success {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 60px rgba(16, 185, 129, 0.05);
+}
+
+/* ===== Gradient Text ===== */
+.gradient-text {
+  background: linear-gradient(135deg, var(--sp-rose) 0%, var(--sp-amber) 50%, var(--sp-violet) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-rose-amber {
+  background: linear-gradient(135deg, var(--sp-rose) 0%, var(--sp-amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Live Pulse ===== */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px var(--sp-red), 0 0 10px var(--sp-red); }
-  50% { box-shadow: 0 0 10px var(--sp-red), 0 0 20px var(--sp-red), 0 0 30px var(--sp-red); }
+  0%, 100% { box-shadow: 0 0 5px var(--sp-danger), 0 0 10px var(--sp-danger); }
+  50% { box-shadow: 0 0 10px var(--sp-danger), 0 0 20px var(--sp-danger), 0 0 30px var(--sp-danger); }
 }
-
 .live-pulse {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Typing animation */
-@keyframes typing-dots {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
+/* ===== Breathing Dots ===== */
+@keyframes breathing {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+.breathing-dot {
+  animation: breathing 1.5s ease-in-out infinite;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--sp-bg);
-}
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--sp-bg); }
 ::-webkit-scrollbar-thumb {
   background: var(--sp-border);
   border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sp-border-light);
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob { animation: none !important; }
+  .live-pulse { animation: none !important; }
+  .breathing-dot { animation: none !important; }
 }

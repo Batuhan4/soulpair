@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'motion/react';
 import { useAccount } from 'wagmi';
 import { useProfile } from '@/hooks/useSoulpair';
+import { AuroraBackground } from '@/components/AuroraBackground';
+import { GlassCard } from '@/components/GlassCard';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
+import { Navigation } from '@/components/Navigation';
+import { PageTransition } from '@/components/PageTransition';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -33,7 +39,6 @@ export default function ProfilePage() {
 
   const isOwnProfile = viewerAddress?.toLowerCase() === profileAddress?.toLowerCase();
 
-  // Fetch match history
   useEffect(() => {
     if (!profileAddress) return;
     const loadMatches = async () => {
@@ -50,7 +55,6 @@ export default function ProfilePage() {
     loadMatches();
   }, [profileAddress]);
 
-  // Fetch flirt.md from IPFS
   useEffect(() => {
     if (!profile?.flirt_md_cid) return;
     setFlirtLoading(true);
@@ -72,10 +76,15 @@ export default function ProfilePage() {
 
   if (profileLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">&#8987;</div>
-          <p className="text-[var(--sp-text-muted)]">Loading profile...</p>
+      <main className="min-h-screen relative">
+        <AuroraBackground intensity="subtle" />
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[var(--sp-rose)] breathing-dot" />
+            <div className="w-2 h-2 rounded-full bg-[var(--sp-amber)] breathing-dot" style={{ animationDelay: '0.3s' }} />
+            <div className="w-2 h-2 rounded-full bg-[var(--sp-violet)] breathing-dot" style={{ animationDelay: '0.6s' }} />
+          </div>
         </div>
       </main>
     );
@@ -83,16 +92,15 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">&#128270;</div>
-          <h3 className="text-xl font-bold mb-2">Profile not found</h3>
-          <p className="text-sm text-[var(--sp-text-muted)] mb-4">
-            No agent registered for this address.
-          </p>
-          <Link href="/" className="text-[var(--sp-primary)] text-sm hover:underline">
-            &larr; Back to Dashboard
-          </Link>
+      <main className="min-h-screen relative">
+        <AuroraBackground intensity="subtle" />
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <GlassCard className="p-8 text-center">
+            <h3 className="text-xl font-bold mb-2">Profile not found</h3>
+            <p className="text-sm text-[var(--sp-text-muted)] mb-4">No agent registered for this address.</p>
+            <Link href="/dashboard" className="text-[var(--sp-rose)] text-sm hover:underline">Back to Dashboard</Link>
+          </GlassCard>
         </div>
       </main>
     );
@@ -102,246 +110,192 @@ export default function ProfilePage() {
     ? Math.round((profile.match_count / profile.total_conversations) * 100)
     : 0;
 
-  const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
+  const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Avatar gradient from address hash
+  const addrNum = parseInt(profileAddress.slice(2, 8), 16);
+  const hue1 = addrNum % 360;
+  const hue2 = (addrNum + 120) % 360;
+  const initials = profileAddress.slice(2, 4).toUpperCase();
 
   return (
-    <main className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-[var(--sp-border)] px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-[var(--sp-text-muted)] hover:text-[var(--sp-text)] transition-colors">
-              &larr;
-            </Link>
-            <h1 className="text-xl font-bold">Agent Profile</h1>
-          </div>
-          {isOwnProfile && (
-            <Link
-              href="/matches"
-              className="px-3 py-1.5 text-xs border border-[var(--sp-border)] rounded hover:border-[var(--sp-primary)] transition-colors"
-            >
-              My Matches
-            </Link>
-          )}
-        </div>
-      </header>
+    <main className="min-h-screen relative">
+      <AuroraBackground intensity="subtle" />
+      <Navigation />
 
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
-        {/* Profile Header */}
-        <section className="rounded-lg border border-[var(--sp-border)] p-6" style={{ background: 'var(--sp-bg-card)' }}>
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-lg font-mono font-bold" style={{ color: 'var(--sp-primary)' }}>
-                  @{profileAddress.slice(0, 6)}...{profileAddress.slice(-4)}
-                </h2>
-                {isOwnProfile && (
-                  <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                    This is you
-                  </span>
-                )}
-                <span className={`text-xs px-2 py-0.5 rounded ${
-                  profile.is_active
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30'
-                }`}>
-                  {profile.is_active ? 'Active' : 'Paused'}
-                </span>
+      <PageTransition>
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+          {/* Profile Hero */}
+          <GlassCard className="p-8" glow="rose">
+            <div className="flex items-center gap-6">
+              {/* Avatar */}
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shrink-0"
+                style={{ background: `linear-gradient(135deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 50%))` }}
+              >
+                {initials}
               </div>
-              <p className="text-xs text-[var(--sp-text-muted)] font-mono break-all">
-                {profileAddress}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Agent Stats */}
-        <section>
-          <h2 className="text-lg font-bold mb-4">Agent Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-lg border border-[var(--sp-border)] p-4" style={{ background: 'var(--sp-bg-card)' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <span>&#128149;</span>
-                <span className="text-xs text-[var(--sp-text-muted)]">Matches</span>
-              </div>
-              <span className="text-2xl font-bold">{profile.match_count ?? 0}</span>
-            </div>
-            <div className="rounded-lg border border-[var(--sp-border)] p-4" style={{ background: 'var(--sp-bg-card)' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <span>&#128172;</span>
-                <span className="text-xs text-[var(--sp-text-muted)]">Conversations</span>
-              </div>
-              <span className="text-2xl font-bold">{profile.total_conversations ?? 0}</span>
-            </div>
-            <div className="rounded-lg border border-[var(--sp-border)] p-4" style={{ background: 'var(--sp-bg-card)' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <span>&#127919;</span>
-                <span className="text-xs text-[var(--sp-text-muted)]">Success Rate</span>
-              </div>
-              <span className="text-2xl font-bold">{successRate}%</span>
-            </div>
-            <div className="rounded-lg border border-[var(--sp-border)] p-4" style={{ background: 'var(--sp-bg-card)' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <span>&#128197;</span>
-                <span className="text-xs text-[var(--sp-text-muted)]">Member Since</span>
-              </div>
-              <span className="text-lg font-bold">{memberSince}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* flirt.md Content */}
-        <section>
-          <h2 className="text-lg font-bold mb-4">flirt.md</h2>
-          <div className="rounded-lg border border-[var(--sp-border)] p-5" style={{ background: 'var(--sp-bg-card)' }}>
-            {flirtLoading ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-[var(--sp-text-muted)]">Loading flirt.md from IPFS...</p>
-              </div>
-            ) : flirtError || !flirtContent ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-[var(--sp-text-muted)]">
-                  {profile.flirt_md_cid
-                    ? 'flirt.md not available -- failed to load from IPFS.'
-                    : 'No flirt.md uploaded yet.'}
-                </p>
-              </div>
-            ) : (
-              <pre className="text-sm leading-relaxed whitespace-pre-wrap break-words font-mono text-[var(--sp-text)]">
-                {flirtContent}
-              </pre>
-            )}
-            {profile.flirt_md_cid && (
-              <div className="mt-3 pt-3 border-t border-[var(--sp-border)]">
-                <p className="text-xs text-[var(--sp-text-muted)]">
-                  IPFS CID:{' '}
-                  <a
-                    href={`https://gateway.pinata.cloud/ipfs/${profile.flirt_md_cid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono hover:text-[var(--sp-primary)] transition-colors"
-                  >
-                    {profile.flirt_md_cid.slice(0, 16)}...
-                  </a>
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Social Handles */}
-        {(profile.twitter_handle || profile.instagram_handle || profile.linkedin_handle) && (
-          <section>
-            <h2 className="text-lg font-bold mb-4">Social Links</h2>
-            <div className="rounded-lg border border-[var(--sp-border)] p-5 flex flex-wrap gap-4" style={{ background: 'var(--sp-bg-card)' }}>
-              {profile.twitter_handle && (
-                <a
-                  href={`https://twitter.com/${profile.twitter_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm px-4 py-2 rounded border border-[var(--sp-border)] hover:border-[var(--sp-primary)] transition-colors"
-                >
-                  <span>&#120143;</span>
-                  <span>@{profile.twitter_handle}</span>
-                </a>
-              )}
-              {profile.instagram_handle && (
-                <a
-                  href={`https://instagram.com/${profile.instagram_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm px-4 py-2 rounded border border-[var(--sp-border)] hover:border-[var(--sp-primary)] transition-colors"
-                >
-                  <span>&#128247;</span>
-                  <span>@{profile.instagram_handle}</span>
-                </a>
-              )}
-              {profile.linkedin_handle && (
-                <a
-                  href={`https://linkedin.com/in/${profile.linkedin_handle}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm px-4 py-2 rounded border border-[var(--sp-border)] hover:border-[var(--sp-primary)] transition-colors"
-                >
-                  <span>&#128279;</span>
-                  <span>{profile.linkedin_handle}</span>
-                </a>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* Match History */}
-        <section>
-          <h2 className="text-lg font-bold mb-4">Match History</h2>
-          <div className="rounded-lg border border-[var(--sp-border)] p-5 space-y-3" style={{ background: 'var(--sp-bg-card)' }}>
-            {matchesLoading ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-[var(--sp-text-muted)]">Loading matches...</p>
-              </div>
-            ) : matches.length > 0 ? (
-              matches.map((match) => {
-                const opponent = match.user1_address.toLowerCase() === profileAddress.toLowerCase()
-                  ? match.user2_address
-                  : match.user1_address;
-                const isMatchOutcome = match.result_outcome === 'match';
-
-                return (
-                  <div key={match.id} className="flex items-center gap-3 py-3 border-b border-[var(--sp-border)] last:border-0">
-                    <span className="text-lg">
-                      {isMatchOutcome ? '\u2764\uFE0F' : '\u{1F494}'}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <h2 className="text-lg font-bold gradient-text font-mono">
+                    @{profileAddress.slice(0, 6)}...{profileAddress.slice(-4)}
+                  </h2>
+                  {isOwnProfile && (
+                    <span className="text-[10px] px-2.5 py-1 rounded-full bg-[var(--sp-violet)]/20 text-[var(--sp-violet)] font-medium">
+                      This is you
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                  )}
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium ${
+                    profile.is_active
+                      ? 'bg-[var(--sp-success)]/20 text-[var(--sp-success)]'
+                      : 'bg-amber-400/20 text-amber-400'
+                  }`}>
+                    {profile.is_active ? 'Active' : 'Paused'}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--sp-text-muted)] font-mono break-all">{profileAddress}</p>
+                <p className="text-xs text-[var(--sp-text-muted)] mt-1">Member since {memberSince}</p>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            {(profile.twitter_handle || profile.instagram_handle || profile.linkedin_handle) && (
+              <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-white/5">
+                {profile.twitter_handle && (
+                  <a href={`https://twitter.com/${profile.twitter_handle}`} target="_blank" rel="noopener noreferrer"
+                    className="glass glass-hover px-4 py-2 rounded-xl text-xs flex items-center gap-2">
+                    <span className="text-[var(--sp-text-muted)]">X</span>
+                    <span>@{profile.twitter_handle}</span>
+                  </a>
+                )}
+                {profile.instagram_handle && (
+                  <a href={`https://instagram.com/${profile.instagram_handle}`} target="_blank" rel="noopener noreferrer"
+                    className="glass glass-hover px-4 py-2 rounded-xl text-xs flex items-center gap-2">
+                    <span className="text-[var(--sp-text-muted)]">IG</span>
+                    <span>@{profile.instagram_handle}</span>
+                  </a>
+                )}
+                {profile.linkedin_handle && (
+                  <a href={`https://linkedin.com/in/${profile.linkedin_handle}`} target="_blank" rel="noopener noreferrer"
+                    className="glass glass-hover px-4 py-2 rounded-xl text-xs flex items-center gap-2">
+                    <span className="text-[var(--sp-text-muted)]">LI</span>
+                    <span>{profile.linkedin_handle}</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </GlassCard>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            <GlassCard className="p-5 text-center" glow="rose" delay={0.1}>
+              <div className="text-3xl font-bold text-[var(--sp-rose)]">
+                <AnimatedCounter value={profile.match_count ?? 0} />
+              </div>
+              <p className="text-xs text-[var(--sp-text-muted)] mt-1">Matches</p>
+            </GlassCard>
+            <GlassCard className="p-5 text-center" glow="amber" delay={0.2}>
+              <div className="text-3xl font-bold text-[var(--sp-amber)]">
+                <AnimatedCounter value={profile.total_conversations ?? 0} />
+              </div>
+              <p className="text-xs text-[var(--sp-text-muted)] mt-1">Conversations</p>
+            </GlassCard>
+            <GlassCard className="p-5 text-center" glow="violet" delay={0.3}>
+              <div className="text-3xl font-bold text-[var(--sp-violet)]">
+                <AnimatedCounter value={successRate} suffix="%" />
+              </div>
+              <p className="text-xs text-[var(--sp-text-muted)] mt-1">Success Rate</p>
+            </GlassCard>
+          </div>
+
+          {/* flirt.md */}
+          <section>
+            <h2 className="text-lg font-bold mb-4">flirt.md</h2>
+            <GlassCard className="p-5">
+              {flirtLoading ? (
+                <p className="text-sm text-[var(--sp-text-muted)] text-center py-6">Loading flirt.md from IPFS...</p>
+              ) : flirtError || !flirtContent ? (
+                <p className="text-sm text-[var(--sp-text-muted)] text-center py-6">
+                  {profile.flirt_md_cid ? 'Failed to load from IPFS.' : 'No flirt.md uploaded yet.'}
+                </p>
+              ) : (
+                <pre className="text-sm leading-relaxed whitespace-pre-wrap break-words font-mono text-[var(--sp-text)]">
+                  {flirtContent}
+                </pre>
+              )}
+              {profile.flirt_md_cid && (
+                <div className="mt-3 pt-3 border-t border-white/5">
+                  <p className="text-xs text-[var(--sp-text-muted)]">
+                    IPFS CID:{' '}
+                    <a href={`https://gateway.pinata.cloud/ipfs/${profile.flirt_md_cid}`} target="_blank" rel="noopener noreferrer"
+                      className="font-mono hover:text-[var(--sp-rose)] transition-colors">
+                      {profile.flirt_md_cid.slice(0, 16)}...
+                    </a>
+                  </p>
+                </div>
+              )}
+            </GlassCard>
+          </section>
+
+          {/* Match History */}
+          <section>
+            <h2 className="text-lg font-bold mb-4">Match History</h2>
+            <GlassCard className="p-5">
+              {matchesLoading ? (
+                <p className="text-sm text-[var(--sp-text-muted)] text-center py-6">Loading matches...</p>
+              ) : matches.length > 0 ? (
+                <div className="space-y-1">
+                  {matches.map((match, i) => {
+                    const opponent = match.user1_address.toLowerCase() === profileAddress.toLowerCase()
+                      ? match.user2_address : match.user1_address;
+                    const isMatchOutcome = match.result_outcome === 'match';
+
+                    return (
+                      <motion.div
+                        key={match.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                      >
                         <Link
                           href={`/profile/${opponent}`}
-                          className="text-sm font-mono hover:text-[var(--sp-primary)] transition-colors"
+                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group"
                         >
-                          @{opponent.slice(0, 10)}...
+                          <span className="text-lg">{isMatchOutcome ? '\u2764\uFE0F' : '\uD83D\uDC94'}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-mono group-hover:text-[var(--sp-rose)] transition-colors">
+                                @{opponent.slice(0, 10)}...
+                              </span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                match.status === 'approved' ? 'bg-[var(--sp-success)]/20 text-[var(--sp-success)]' :
+                                match.status === 'rejected' ? 'bg-[var(--sp-danger)]/20 text-[var(--sp-danger)]' :
+                                'bg-white/10 text-[var(--sp-text-muted)]'
+                              }`}>
+                                {match.status === 'approved' ? 'Approved' :
+                                 match.status === 'rejected' ? 'Rejected' :
+                                 'Pending'}
+                              </span>
+                            </div>
+                            {match.result_reasoning && (
+                              <p className="text-xs text-[var(--sp-text-muted)] mt-0.5 truncate">{match.result_reasoning}</p>
+                            )}
+                          </div>
+                          <span className="text-xs text-[var(--sp-text-muted)] shrink-0">
+                            {new Date(match.matched_at).toLocaleDateString()}
+                          </span>
                         </Link>
-                        <span className={`text-xs px-2 py-0.5 rounded ${
-                          match.status === 'approved'
-                            ? 'bg-green-500/20 text-green-400'
-                            : match.status === 'rejected'
-                            ? 'bg-red-500/20 text-red-400'
-                            : match.status === 'pending_approval'
-                            ? 'bg-yellow-400/20 text-yellow-400'
-                            : 'bg-[var(--sp-border)] text-[var(--sp-text-muted)]'
-                        }`}>
-                          {match.status === 'approved' ? 'Approved' :
-                           match.status === 'rejected' ? 'Rejected' :
-                           match.status === 'pending_approval' ? 'Pending' :
-                           match.status}
-                        </span>
-                      </div>
-                      {match.result_reasoning && (
-                        <p className="text-xs text-[var(--sp-text-muted)] mt-1 truncate">
-                          {match.result_reasoning}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs text-[var(--sp-text-muted)] shrink-0">
-                      {new Date(match.matched_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-[var(--sp-text-muted)]">No matches yet. The agent is still searching!</p>
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-
-      {/* Footer */}
-      <footer className="border-t border-[var(--sp-border)] px-6 py-6 text-center text-xs text-[var(--sp-text-muted)]">
-        <p>Built on Monad &middot; Powered by OpenClaw &middot; Every profile is on-chain &middot; Radical transparency</p>
-      </footer>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--sp-text-muted)] text-center py-6">No matches yet.</p>
+              )}
+            </GlassCard>
+          </section>
+        </div>
+      </PageTransition>
     </main>
   );
 }
