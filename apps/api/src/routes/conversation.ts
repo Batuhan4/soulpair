@@ -32,6 +32,34 @@ router.get('/:id/messages', (req: Request, res: Response) => {
   res.json({ success: true, data: messages });
 });
 
+// POST /api/conversation/message — Add a message to a conversation (seed/dev)
+router.post('/message', (req: Request, res: Response) => {
+  const { conversationId, fromAddress, content } = req.body;
+  if (!conversationId || !fromAddress || !content) {
+    res.status(400).json({ success: false, error: 'conversationId, fromAddress, content required' });
+    return;
+  }
+
+  const conv = db.prepare('SELECT * FROM conversations WHERE id = ?').get(conversationId) as any;
+  if (!conv) {
+    res.status(404).json({ success: false, error: 'Conversation not found' });
+    return;
+  }
+
+  // Set conversation to active if still waiting
+  if (conv.status === 'waiting') {
+    db.prepare("UPDATE conversations SET status = 'active' WHERE id = ?").run(conversationId);
+  }
+
+  const id = crypto.randomUUID();
+  db.prepare(`
+    INSERT INTO conversation_messages (id, conversation_id, from_address, content, timestamp)
+    VALUES (?, ?, ?, ?, datetime('now'))
+  `).run(id, conversationId, fromAddress, content);
+
+  res.json({ success: true, data: { id, conversationId, fromAddress, content } });
+});
+
 // GET /api/conversations/history/:address — Get conversation history for a user
 router.get('/history/:address', (req: Request, res: Response) => {
   const { address } = req.params;

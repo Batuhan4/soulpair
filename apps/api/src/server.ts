@@ -17,7 +17,14 @@ const PORT = process.env.PORT || 3001;
 // ===== Middleware =====
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow localhost on any port + no origin (curl/server-to-server)
+    if (!origin || /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, process.env.FRONTEND_URL || false);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
@@ -87,12 +94,12 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 
 setupWebSocket(wss);
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`
   ╔═══════════════════════════════════════════╗
   ║   🔥 Soulpair API Server                 ║
-  ║   HTTP:  http://localhost:${PORT}           ║
-  ║   WS:    ws://localhost:${PORT}/ws          ║
+  ║   HTTP:  http://0.0.0.0:${PORT}            ║
+  ║   WS:    ws://0.0.0.0:${PORT}/ws           ║
   ║   Status: Ready                           ║
   ╚═══════════════════════════════════════════╝
   `);

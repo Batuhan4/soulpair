@@ -12,6 +12,7 @@
     "dev:api": "tsx apps/api/src/server.ts",
     "dev:web": "npm run dev -w apps/web",
     "test:e2e": "tsx test/e2e-flow.ts",
+    "seed": "tsx scripts/seed.ts",
     "build:shared": "npm run build -w packages/shared",
     "test:contracts": "cd packages/contracts && $HOME/.foundry/bin/forge test -vv",
     "deploy:testnet": "cd packages/contracts && $HOME/.foundry/bin/forge script script/Deploy.s.sol:DeployScript --rpc-url https://testnet-rpc.monad.xyz --private-key $PRIVATE_KEY --broadcast",
